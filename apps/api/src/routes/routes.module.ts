@@ -25,7 +25,10 @@ import {
   AudioAssetsExamplesController,
   AudioAssetsWordsController,
 } from '../controllers/audio-assets.controller';
+import { AudioStreamController } from '../controllers/audio-stream.controller';
 import { ContentManifestController } from '../controllers/content-manifest.controller';
+import { AudioAccessUrlService } from '../services/audio-access-url.service';
+import { CosStorageService } from '../services/cos-storage.service';
 
 @Module({
   imports: [AuthModule],
@@ -57,8 +60,16 @@ import { ContentManifestController } from '../controllers/content-manifest.contr
     //   - words: P2.2 (单词音频, replaces legacy /api/v1/pronunciation)
     AudioAssetsExamplesController,
     AudioAssetsWordsController,
+    // 需求 24: 后端代理 stream，AUDIO_ACCESS_MODE=backend_proxy_stream 时被 App 命中
+    AudioStreamController,
     // v0.3.0 PR-A Day 4: content manifest discovery for clients
     ContentManifestController,
+  ],
+  providers: [
+    // 需求 24: audio metadata 接口注入它来 resolve meta.url（按 mode 切换）
+    AudioAccessUrlService,
+    // 需求 24: COS internal endpoint 读取（pronunciation + audio stream 共用）
+    CosStorageService,
   ],
 })
 export class RoutesModule {}

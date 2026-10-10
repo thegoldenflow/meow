@@ -35,6 +35,16 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-meow_password}@postgres:5432/${POSTGRES_DB:-meow_dev}}
       AUDIO_CDN_ORIGIN: ${AUDIO_CDN_ORIGIN:-https://your-bucket.cos.ap-shanghai.myqcloud.com}
       PRONUNCIATION_CDN_ORIGIN: ${PRONUNCIATION_CDN_ORIGIN:-https://your-bucket.cos.ap-shanghai.myqcloud.com}
+      # 需求 24: audio 流量经服务端代理 COS internal endpoint
+      # 本地未配 COS_* 时启动会被 assertAudioAccessModeReady 拒绝；要么 export
+      # 凭证（vpn / 内网测试），要么显式覆盖 AUDIO_ACCESS_MODE=backend_issued_cos_url
+      AUDIO_ACCESS_MODE: ${AUDIO_ACCESS_MODE:-backend_proxy_stream}
+      API_PUBLIC_BASE: ${API_PUBLIC_BASE:-http://10.0.2.2:3000/api/v1}
+      COS_INTERNAL_ENDPOINT: ${COS_INTERNAL_ENDPOINT:-}
+      COS_REGION: ${COS_REGION:-ap-shanghai}
+      COS_BUCKET: ${COS_BUCKET:-}
+      COS_SECRET_ID: ${COS_SECRET_ID:-}
+      COS_SECRET_KEY: ${COS_SECRET_KEY:-}
     ports:
       - "${API_PORT:-3000}:3000"
     command: ["sh", "-c", "node dist/infrastructure/postgres/migrate.js up && node dist/main.js"]
