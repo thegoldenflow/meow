@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { getPool } from '../infrastructure/postgres/client';
+import { AudioAccessUrlService } from '../services/audio-access-url.service';
 
 /**
  * Audio Assets — resolve example AND word audio metadata for the App.
@@ -135,6 +136,8 @@ async function lookupAudioAsset(
  */
 @Controller('examples')
 export class AudioAssetsExamplesController {
+  constructor(private readonly audioAccessUrl: AudioAccessUrlService) {}
+
   @Get(':stable_id/audio')
   async getExampleAudio(
     @Param('stable_id') stableId: string,
@@ -168,7 +171,9 @@ export class AudioAssetsExamplesController {
         ...(audioVersion ? { audio_version: audioVersion } : {}),
       });
     }
-    return row;
+    // 需求 24: meta.url 由 AudioAccessUrlService 根据 AUDIO_ACCESS_MODE
+    // 决定是 COS public URL（兼容模式）还是后端 stream URL（代理模式）。
+    return { ...row, url: this.audioAccessUrl.resolve(row) };
   }
 }
 
@@ -182,6 +187,8 @@ export class AudioAssetsExamplesController {
  */
 @Controller('words')
 export class AudioAssetsWordsController {
+  constructor(private readonly audioAccessUrl: AudioAccessUrlService) {}
+
   @Get(':word_id/audio')
   async getWordAudio(
     @Param('word_id') wordId: string,
@@ -218,7 +225,8 @@ export class AudioAssetsWordsController {
         ...(audioVersion ? { audio_version: audioVersion } : {}),
       });
     }
-    return row;
+    // 需求 24: 见 AudioAssetsExamplesController 同名注释。
+    return { ...row, url: this.audioAccessUrl.resolve(row) };
   }
 }
 

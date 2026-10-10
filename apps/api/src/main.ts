@@ -6,10 +6,14 @@ import { loggingMiddleware } from './middleware/logging.middleware';
 import { errorFilter } from './middleware/error.filter';
 import { PersistenceFailureFilter } from './middleware/persistence-failure.filter';
 import { assertProductionAuthEnforce } from './auth/auth.guard';
+import { assertAudioAccessModeReady } from './services/audio-access-url.service';
 
 async function bootstrap() {
   // 需求 23 D13: 生产环境必须开启 AUTH_ENFORCE
   assertProductionAuthEnforce();
+
+  // 需求 24 II: stream 模式必须有 COS 凭证（fail-fast）
+  assertAudioAccessModeReady();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
